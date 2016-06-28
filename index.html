@@ -112,22 +112,37 @@
 
             function load() {
                 $("#status").text("Loading ...");
-                $.ajax({
+                var startTime = new Date();
+                var request = {
                     type: method,
                     url: url,
                     data: post,
-                    dataType: "text",
+                    dataType: "json",
                     success: function(data, status, xhr) {
-                        $(".result_p").show();
-                        $("#status").text("SUCCESS, code: "+xhr.status+" ("+status+")");
-                        $("#result").text(data? data : "");
+                        handleCommon("SUCCESS", xhr.status, status, startTime);
+
+                        var output;
+                        if (data instanceof Object) {
+                            output = JSON.stringify(data, null, "\t");
+                        } else {
+                            output = data ? data : "";
+                        }
+                        $("#result").text(output);
                     },
                     error: function(xhr, data, status) {
-                        $(".result_p").show();
-                        $("#status").text("ERROR, code: "+xhr.status + " ("+status+")");
+                        handleCommon("ERROR", xhr.status, status, startTime);
                         $("#result").text(xhr.responseText ? xhr.responseText : "");
                     }
-                });
+                };
+
+                $.ajax(request);
+            }
+
+            function handleCommon(state, status1, status2, start) {
+                $(".result_p").show();
+                var timeDiff = Math.abs(new Date().getTime() - start.getTime());
+                var diff = (timeDiff / 1000) + "s";
+                $("#status").text(state + ", code: " + status1 + " (" + status2 + "), request time: " + diff);
             }
 
             function getMethod() {
